@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Validator - Smarty USPS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        .input-section {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .format-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .result-item {
+            border-left: 4px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        
+        .result-item.valid {
+            border-left-color: #4caf50;
+            background: #f1f8f4;
+        }
+        
+        .result-item.invalid {
+            border-left-color: #f44336;
+            background: #fef1f0;
+        }
+        
+        .result-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .status-badge.valid {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-badge.invalid {
+            background: #f44336;
+            color: white;
+        }
+        
+        .address-original {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .address-corrected {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .address-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .summary {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+        }
+        
+        .summary-item {
+            text-align: center;
+        }
+        
+        .summary-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .summary-number.valid {
+            color: #4caf50;
+        }
+        
+        .summary-number.invalid {
+            color: #f44336;
+        }
+        
+        .summary-label {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .error-message {
+            background: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .card {
+                padding: 20px;
+            }
+            
+            .address-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦞 Address Validator</h1>
+            <p>Powered by Smarty USPS API</p>
+        </div>
+        
+        <div class="card">
+            <div class="input-section">
+                <label for="addresses">Enter Addresses (one per line)</label>
+                <textarea 
+                    id="addresses" 
+                    placeholder="3754 NW 31st Ave|Camas|WA|98607&#10;100 Hunter Lane|Enfield|CT|06082&#10;392 Chung Forge Apt. 546|Brucebury|Oregon|77784"
+                ></textarea>
+                <div class="format-hint">Format: street|city|state|zipcode</div>
+            </div>
+            
+            <button class="btn" id="validateBtn" onclick="validateAddresses()">
+                Validate Addresses
+            </button>
+        </div>
+        
+        <div id="resultsContainer"></div>
+    </div>
+
+    <script>
+        async function validateAddresses() {
+            const textarea = document.getElementById('addresses');
+            const btn = document.getElementById('validateBtn');
+            const resultsContainer = document.getElementById('resultsContainer');
+            
+            const lines = textarea.value.trim().split('\n').filter(line => line.trim());
+            
+            if (lines.length === 0) {
+                alert('Please enter at least one address');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = 'Validating...';
+            resultsContainer.innerHTML = '<div class="card"><div class="loading">🔄 Validating addresses...</div></div>';
+            
+            const results = [];
+            
+            for (const line of lines) {
+                const parts = line.split('|').map(p => p.trim());
+                if (parts.length < 4) {
+                    results.push({
+                        original: line,
+                        valid: false,
+                        error: 'Invalid format (need: street|city|state|zip)'
+                    });
+                    continue;
+                }
+                
+                const [street, city, state, zipcode] = parts;
+                
+                try {
+                    const response = await fetch('/api/validate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ street, city, state, zipcode })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && Array.isArray(data) && data.length > 0) {
+                        results.push({ original: line, valid: true, data: data[0] });
+                    } else if (response.ok && Array.isArray(data) && data.length === 0) {
+                        results.push({ original: line, valid: false, error: 'Address not found in USPS database' });
+                    } else if (data.error) {
+                        results.push({ original: line, valid: false, error: data.error });
+                    } else {
+                        results.push({ original: line, valid: false, error: 'Unexpected API response' });
+                    }
+                } catch (error) {
+                    results.push({ original: line, valid: false, error: `Error: ${error.message}` });
+                }
+                
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            displayResults(results);
+            btn.disabled = false;
+            btn.textContent = 'Validate Addresses';
+        }
+
+        function displayResults(results) {
+            const validCount = results.filter(r => r.valid).length;
+            const invalidCount = results.filter(r => !r.valid).length;
+            
+            let html = '<div class="card">';
+            
+            html += '<div class="summary">';
+            html += `<div class="summary-item">
+                        <div class="summary-number">${results.length}</div>
+                        <div class="summary-label">Total</div>
+                     </div>`;
+            html += `<div class="summary-item">
+                        <div class="summary-number valid">${validCount}</div>
+                        <div class="summary-label">Valid</div>
+                     </div>`;
+            html += `<div class="summary-item">
+                        <div class="summary-number invalid">${invalidCount}</div>
+                        <div class="summary-label">Invalid</div>
+                     </div>`;
+            html += '</div>';
+            
+            html += '<div class="results">';
+            
+            results.forEach((result, index) => {
+                const statusClass = result.valid ? 'valid' : 'invalid';
+                
+                html += `<div class="result-item ${statusClass}">`;
+                html += `<div class="result-header">`;
+                html += `<span class="status-badge ${statusClass}">${result.valid ? '✓ VALID' : '✗ INVALID'}</span>`;
+                html += `<span style="color: #999; font-size: 12px;">#${index + 1}</span>`;
+                html += `</div>`;
+                
+                html += `<div class="address-original">Input: ${result.original}</div>`;
+                
+                if (result.valid && result.data) {
+                    const d = result.data;
+                    html += `<div class="address-corrected">✓ ${d.delivery_line_1}</div>`;
+                    html += `<div class="address-corrected">${d.last_line}</div>`;
+                    
+                    html += '<div class="address-details">';
+                    if (d.metadata) {
+                        html += `<div class="detail-item"><span class="detail-label">County:</span><span class="detail-value">${d.metadata.county_name || 'N/A'}</span></div>`;
+                        html += `<div class="detail-item"><span class="detail-label">Type:</span><span class="detail-value">${d.metadata.rdi || 'N/A'}</span></div>`;
+                        html += `<div class="detail-item"><span class="detail-label">Timezone:</span><span class="detail-value">${d.metadata.time_zone || 'N/A'}</span></div>`;
+                        html += `<div class="detail-item"><span class="detail-label">ZIP+4:</span><span class="detail-value">${d.components.zipcode}-${d.components.plus4_code}</span></div>`;
+                        
+                        if (d.metadata.latitude && d.metadata.longitude) {
+                            html += `<div class="detail-item"><span class="detail-label">Coordinates:</span><span class="detail-value">${d.metadata.latitude}, ${d.metadata.longitude}</span></div>`;
+                        }
+                    }
+                    
+                    if (d.analysis) {
+                        html += `<div class="detail-item"><span class="detail-label">Vacant:</span><span class="detail-value">${d.analysis.dpv_vacant === 'Y' ? 'Yes' : 'No'}</span></div>`;
+                        html += `<div class="detail-item"><span class="detail-label">Active:</span><span class="detail-value">${d.analysis.active === 'Y' ? 'Yes' : 'No'}</span></div>`;
+                    }
+                    html += '</div>';
+                } else {
+                    html += `<div class="error-message">❌ ${result.error || 'Unknown error'}</div>`;
+                }
+                
+                html += `</div>`;
+            });
+            
+            html += '</div></div>';
+            
+            document.getElementById('resultsContainer').innerHTML = html;
+        }
+    </script>
+</body>
+</html>
